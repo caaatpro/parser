@@ -27,10 +27,10 @@ var moviesDB = [];
 // 	console.log(movie.length);
 // });
 
-select(0);
+select(120000);
 
 function select(t) {
-  sdb.all("SELECT id, title, yaer, description, duration, type FROM movies LIMIT " + t + ", 100000", function(err, movies) {
+  sdb.all("SELECT id, title, yaer, description, duration, type FROM movies LIMIT " + t + ", 10000", function(err, movies) {
     if (err) {
       console.log('Error', err);
       return;
