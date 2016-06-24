@@ -24,25 +24,60 @@ require('./schema/Movie')(db, mongoose);
 var moviesDB = [];
 
 // db.models.Movie.find({}).exec(function(err, movie) {
-// 	console.log(movie.length);
+//  console.log(movie.length);
 // });
 
-select(120000);
 
-function select(t) {
-  sdb.all("SELECT id, title, yaer, description, duration, type FROM movies LIMIT " + t + ", 10000", function(err, movies) {
+var total = 0,
+    tt = 4,
+    ti = 0,
+    s = 0,
+    l1 = 191000,
+    l2 =  10000;
+
+select(l1, l2)
+
+function select(l1, l2) {
+  sdb.all("SELECT id, title, yaer, description, duration, type FROM movies LIMIT " + l1 + ", " + l2, function(err, movies) {
     if (err) {
       console.log('Error', err);
       return;
     }
 
     moviesDB = movies;
+    
+    total = moviesDB.length;
+    step =  Math.floor(total/tt);
 
-    start (0);
+    console.log(step);
+
+    while(s < total) {
+      console.log(s);
+      start(s, s+step);
+      s = s+step;
+    }
   });
+}
 
-  function start(i) {
-    if (moviesDB[i] == undefined) return;
+function start(i, total) {
+  if (i > total || moviesDB[i] === undefined) {
+    return;
+  }
+
+  db.models.Movie.findOne({ 'imdbID': 'tt' + moviesDB[i].id}).exec(function(err, movie) {
+    if (err) {
+      console.log('Error', err);
+      return;
+    }
+
+   console.log(i);
+
+    if (movie != null) {
+      start(i+1, total);
+      return;
+    }
+
+    console.log(movie);
 
     var duration = moviesDB[i].duration;
 
@@ -59,43 +94,27 @@ function select(t) {
       }
     }
 
-    db.models.Movie.findOne({ 'imdbID': 'tt' + moviesDB[i].id}).exec(function(err, movie) {
+    var fieldsToSet = {
+        titles: [
+            {
+                country: 'origin',
+                title: moviesDB[i].title
+            }
+        ],
+        runtime: runtime,
+        year: moviesDB[i].year,
+        plot: moviesDB[i].description,
+        imdbID: 'tt' + moviesDB[i].id,
+        type: 'movie'
+    };
+
+    db.models.Movie.create(fieldsToSet, function(err, m) {
       if (err) {
         console.log('Error', err);
-        return;
+        return false;
       }
-
-     // console.log(movie);
-
-      if (movie != null) {
-        start(i+1);
-        return;
-      }
-
-      console.log(movie);
-
-      var fieldsToSet = {
-          titles: [
-              {
-                  country: 'origin',
-                  title: moviesDB[i].title
-              }
-          ],
-          runtime: runtime,
-          year: moviesDB[i].year,
-          plot: moviesDB[i].description,
-          imdbID: 'tt' + moviesDB[i].id,
-          type: 'movie'
-      };
-
-      db.models.Movie.create(fieldsToSet, function(err, m) {
-        if (err) {
-          console.log('Error', err);
-          return false;
-        }
-
-        start(i+1);
-      });
+      return;
     });
-  }
+    start(i+1, total);
+  });
 }

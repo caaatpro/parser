@@ -24,6 +24,7 @@
     "async": "^0.9.2",
     "cheerio": "~0.17.0",
     "iconv": "~2.1.4",
+    "iconv-lite": "^0.4.13",
     "mongoose": "^4.4.20",
     "request": "~2.36.0",
     "socks5-http-client": "^1.0.2",
