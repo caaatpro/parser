@@ -29,10 +29,10 @@ var moviesDB = [];
 
 
 var total = 0,
-    tt = 4,
+    tt = 10,
     ti = 0,
     s = 0,
-    l1 = 191000,
+    l1 = 221000,
     l2 =  10000;
 
 select(l1, l2)
@@ -45,7 +45,7 @@ function select(l1, l2) {
     }
 
     moviesDB = movies;
-    
+
     total = moviesDB.length;
     step =  Math.floor(total/tt);
 

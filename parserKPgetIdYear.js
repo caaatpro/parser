@@ -12,11 +12,21 @@ var control = new TorControl();
 var db = new sqlite3.Database('movie.db');
 db.serialize();
 
-var yaer = 2008; // 2000
+var yaer = 1957; // 2000
+var FILM_URL = '';
+startparse();
 
-var FILM_URL = 'http://www.kinopoisk.ru/lists/ord/name/m_act%5Byear%5D/' + yaer + '/m_act%5Ball%5D/ok/page/';
+function startparse() {
+  FILM_URL = 'http://www.kinopoisk.ru/lists/ord/name/m_act%5Byear%5D/' + yaer + '/m_act%5Ball%5D/ok/page/';
 
-var getById = function (id, options, callback) {
+  var start = 1,
+    end =     100000,
+    step =       1,
+    moviesDB = [];
+  parser(start, end, step);
+}
+
+function getById (id, options, callback) {
   console.log(id);
 
   var requestOptions = {
@@ -53,54 +63,12 @@ var getById = function (id, options, callback) {
       }
 
       if (list.length === 0) {
+        yaer -= 1;
+        startparse()
         return;
       }
 
       console.log(list.length);
-
-      /*if ($('title').text().trim() == 'IMDb - D\'oh') {
-        callback(new Error('500'));
-      } else if ($('title').text().trim() == 'IMDb: Error') {
-        callback(new Error('404'));
-      } else{
-
-        var links = $('#main td.title > a');
-        var years = $('#main td.title > span.year_type');
-
-        for (var i = links.length - 1; i >= 0; i--) {
-          var d = dir;
-          var year = $(years[i]).text();
-
-          var id = $(links[i]).attr('href').split('/title/tt')[1].split('/')[0];
-          console.log(id);
-
-          if (year.length > 6) {
-
-            var temp = year.split('(')[1];
-            year = temp.substring(0,3)
-
-            var type = temp.substring(5,temp.length-1);
-
-            if (type == 'TV Series') {
-              d = d + 'series';
-            } else {
-              console.log(type);
-              callback(new Error('stop'));
-            }
-          } else {
-            year = year.split('(')[1].split(')')[0];
-          }
-
-          d = d + year;
-          fs.existsSync(d) || fs.mkdirSync(d);
-
-          if (fs.existsSync(d + '/' + id)) {
-            continue;
-          }
-
-          fs.writeFileSync(d + '/' + id, '1');
-        }
-      }*/
     }
     callback(null, '');
   });
@@ -155,10 +123,6 @@ function u (value) {
 }
 
 
-var start = 1,
-  end =     100000,
-  step =       1,
-  moviesDB = [];
 //
 // db.all("SELECT id FROM movie2", function(err, row) {
 //   for (var i = row.length - 1; i >= 0; i--) {
@@ -170,7 +134,6 @@ var start = 1,
 //   console.log(moviesDB.length);
 // });
 
-parser(start, end, step);
 // var i = 1;
 // while(start <= end) {
 //   setTimeout(prser(start, start+step), i);
