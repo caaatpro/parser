@@ -101,7 +101,7 @@ var getById = function (id, options, callback) {
   }
 }
 
-var getByIdFullcredits = function (id, options, callback) {
+function getByIdFullcredits(id, options, callback) {
 
   var requestOptions = {
     url: FILM_URL + id + '/fullcredits',
@@ -201,7 +201,6 @@ var getByIdFullcredits = function (id, options, callback) {
             getPeople($, $(gElementsTable[i]), id, 'Thanks');
           } else {
             console.log('Stop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
           }
         }
 
@@ -217,6 +216,118 @@ var getByIdFullcredits = function (id, options, callback) {
   }
 }
 
+function getByIdReleaseinfo(id, options, callback) {
+
+  var requestOptions = {
+    url: FILM_URL + id + '/releaseinfo',
+    headers: {
+      'Accept-Language': 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36'
+    },
+    agentClass: Agent,
+    agentOptions: {
+      socksHost: '127.0.0.1',
+      socksPort: 9050
+    },
+    encoding: 'utf-8'
+  };
+  console.log(requestOptions.url);
+
+
+  try {
+    request.get(requestOptions, function (err, response, body) {
+
+      if (err) {
+        callback(new Error('Error while "' + FILM_URL + id + '" processing. ' + err.message));
+      } else {
+        var $ = cheerio.load(body);
+        var title = '';
+
+        if ($('title').text().trim() == "IMDb - D'oh") {
+          callback(new Error('500'));
+        }
+        var result = {
+          id: id
+        };
+
+        var release_dates = $('#release_dates tr');
+        for (var i = 0; i < release_dates.length; i++) {
+          var movieId = id;
+          var fild0 = $($(release_dates[i]).find('td')[0]).text();
+          var fild1 = $($(release_dates[i]).find('td')[1]).text();
+          var fild2 = $($(release_dates[i]).find('td')[2]).text();
+
+          save_release_dates(movieId, fild0, fild1, fild2);
+        }
+
+
+        var akas = $('#akas tr');
+        for (var i = 0; i < akas.length; i++) {
+          var movieId = id;
+          var fild0 = $($(akas[i]).find('td')[0]).text();
+          var fild1 = $($(akas[i]).find('td')[1]).text();
+          var fild2 = $($(akas[i]).find('td')[2]).text();
+
+          save_akas(movieId, fild0, fild1, fild2);
+        }
+
+        //console.log(result);
+
+        callback(null, result);
+      }
+    });
+  } catch (err) {
+    console.log(1);
+    console.dir(err);
+    console.dir(2);
+  }
+}
+
+function save_akas(movieId, fild0, fild1, fild2) {
+  db.get('SELECT movieId FROM akas WHERE movieId = "'+movieId+'" AND filed0 = "'+fild0+'" AND filed1 = "'+fild1+'" AND filed2 = "'+fild2+'" LIMIT 1', function(err, row) {
+    if (err) {
+      console.log(err);
+    }
+
+    if (row === undefined) {
+      console.log( movieId,
+                fild0,
+                fild1,
+                fild2
+              );
+      var stmt = db.prepare("INSERT INTO akas (movieId, filed0, filed1, filed2) VALUES (?, ?, ?, ?)");
+      stmt.run( movieId,
+                fild0,
+                fild1,
+                fild2
+              );
+    }
+  });
+}
+function save_release_dates(movieId, fild0, fild1, fild2) {
+  db.get('SELECT movieId FROM release_dates WHERE movieId = "'+movieId+'" AND filed0 = "'+fild0+'" AND filed1 = "'+fild1+'" AND filed2 = "'+fild2+'" LIMIT 1', function(err, row) {
+    if (err) {
+      console.log(err);
+    }
+
+    // console.log(row);
+
+    if (row === undefined) {
+      console.log( movieId,
+                fild0,
+                fild1,
+                fild2
+              );
+
+      var stmt = db.prepare("INSERT INTO release_dates (movieId, filed0, filed1, filed2) VALUES (?, ?, ?, ?)");
+      stmt.run( movieId,
+                fild0,
+                fild1,
+                fild2
+              );
+    }
+  });
+}
 
 function getInfo($) {
   if ($.length) {
@@ -264,7 +375,6 @@ function getPeople($, table, movieId, field_name) {
               filed[5]
             );
   }
-
 }
 
 function getInfoAttr($, attr) {
@@ -316,18 +426,53 @@ function prser(i, total) {
     }
   });
 }
+function prser2(i, total) {
+  // console.log(typeof(moviesDB[i]));
+  // if (moviesDB[i] != 5583646 && i < total) {
+  //     prser2(i+1, total);
+  //     return;
+  // }
+
+  getByIdReleaseinfo(moviesDB[i], null, function(err, film){
+    if(err){
+    	console.log(err.message);
+
+      if ('500' == err.message) {
+        control.signalNewnym(function (err, status) { // Get a new circuit
+          console.log('Get a new circuit');
+          if(err) {
+            console.log(err);
+            return;
+          }
+
+          console.log(status);
+          console.log(err);
+
+          prser2(i, total);
+        });
+      } else if ('404' == err.message) {
+        if (i < total) {
+          prser2(i+1, total);
+        }
+      }
+    } else {
+      if (i < total) {
+        prser2(i+1, total);
+      }
+    }
+  });
+}
 function u (value) {
   return value;
 }
 
-
 var moviesDB = [],
 		ti = 1,
-		t = 1; // threads
+		t = 20; // threads
 		step = 0,
 		start = 0;
 
-db.all("SELECT id FROM movies WHERE peoples is null", function(err, row) {
+db.all("SELECT id FROM movies LIMIT 0, 10000", function(err, row) {
 	console.log(err);
   for (var i = row.length - 1; i >= 0; i--) {
     moviesDB.push(row[i].id);
@@ -339,7 +484,7 @@ db.all("SELECT id FROM movies WHERE peoples is null", function(err, row) {
 
 	while(ti <= t) {
 	  console.log(start, start+step);
-	  prser(start, start+step);
+	  prser2(start, start+step);
 	  start = start+step;
 	  ti++;
 	}

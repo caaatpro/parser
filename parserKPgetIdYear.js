@@ -12,7 +12,7 @@ var control = new TorControl();
 var db = new sqlite3.Database('movie.db');
 db.serialize();
 
-var yaer = 1957; // 2000
+var yaer = 2050; // 2000
 var FILM_URL = '';
 startparse();
 
@@ -81,8 +81,46 @@ function save(id, title, titleO, yaer) {
     }
 
     if (row === undefined) {
-      var stmt = db.prepare("INSERT INTO moviesKP (id, title, titleO, yaer) VALUES (?, ?, ?, ?);");
-      stmt.run( id, title, titleO, yaer );
+      console.log(id);
+
+      type = '';
+      duration = 0;
+
+      if (~title.indexOf('(мини-сериал)')) {
+        type = 'mini-serial';
+        title = title.replace('(мини-сериал)', '');
+      } else if (~title.indexOf('(сериал)')) {
+        type = 'serial';
+        title = title.replace('(сериал)', '');
+      } else if (~title.indexOf('(видео)')) {
+        type = 'video';
+        title = title.replace('(видео)', '');
+      } else if (~title.indexOf('(ТВ)')) {
+        type = 'tv';
+        title = title.replace('(ТВ)', '');
+      } else {
+        type = 'movie';
+      }
+
+      titleO = titleO.trim();
+
+      var s = titleO.split(' ');
+
+      if (s[s.length-1] === 'мин.') {
+        duration = s[s.length-2];
+      }
+
+      titleO = titleO.replace(duration+' мин.', '');
+      titleO = titleO.replace('('+yaer+')', '');
+
+      title = title.trim();
+      titleO = titleO.trim();
+
+
+      var stmt = db.prepare("INSERT INTO moviesKP (id, title, titleO, yaer, duration, type) VALUES (?, ?, ?, ?, ?, ?);");
+      stmt.run( id, title, titleO, yaer, duration, type );
+
+      console.log(id, title, titleO, yaer, duration, type);
 
       stmt.finalize();
     }
