@@ -243,6 +243,8 @@ function getByIdReleaseinfo(id, options, callback) {
         var $ = cheerio.load(body);
         var title = '';
 
+        // console.log($('title').text().trim());
+
         if ($('title').text().trim() == "IMDb - D'oh") {
           callback(new Error('500'));
         }
@@ -472,7 +474,7 @@ var moviesDB = [],
 		step = 0,
 		start = 0;
 
-db.all("SELECT id FROM movies LIMIT 0, 10000", function(err, row) {
+db.all("SELECT id FROM movies LIMIT 10000, 10000", function(err, row) {
 	console.log(err);
   for (var i = row.length - 1; i >= 0; i--) {
     moviesDB.push(row[i].id);
