@@ -9,7 +9,7 @@ config = {
 
 };
 config.mongodb = {
-  uri: 'mongodb://85.143.209.198:28345/movies'
+  uri: 'mongodb://192.168.1.100:27017/movies'
 };
 db = mongoose.createConnection(config.mongodb.uri);
 db.on('error', console.error.bind(console, 'mongoose connection error: '));
@@ -23,22 +23,17 @@ require('./schema/Movie')(db, mongoose);
 
 var moviesDB = [];
 
-// db.models.Movie.find({}).exec(function(err, movie) {
-//  console.log(movie.length);
-// });
-
-
 var total = 0,
-    tt = 10,
+    tt = 1,
     ti = 0,
     s = 0,
     l1 = 0,
-    l2 =  200000;
+    l2 =  500000;
 
 select(l1, l2)
 
 function select(l1, l2) {
-  sdb.all("SELECT id, title, yaer, description, duration, type FROM movies LIMIT " + l1 + ", " + l2, function(err, movies) {
+  sdb.all("SELECT id, title, yaer, description, duration, type, MPAA FROM movies LIMIT " + l1 + ", " + l2, function(err, movies) {
     if (err) {
       console.log('Error', err);
       return;
@@ -49,18 +44,20 @@ function select(l1, l2) {
     total = moviesDB.length;
     step =  Math.floor(total/tt);
 
-    console.log(step);
+    start(s, total);
+    // console.log(step);
 
-    while(s < total) {
+/*    while(s < total) {
       console.log(s);
       start(s, s+step);
       s = s+step;
-    }
+    }*/
   });
 }
 
 function start(i, total) {
   if (i > total || moviesDB[i] === undefined) {
+    db.close();
     return;
   }
 
@@ -70,14 +67,14 @@ function start(i, total) {
       return;
     }
 
-   console.log(i);
+    console.log(i);
 
     if (movie != null) {
       start(i+1, total);
       return;
     }
 
-    console.log(movie);
+    // console.log(movie);
 
     var duration = moviesDB[i].duration;
 
@@ -85,7 +82,7 @@ function start(i, total) {
       if (duration.indexOf('PT') != -1) {
         var runtime = duration.replace(' ', '').split('PT')[1].split('M')[0];
         // console.log(moviesDB[i].id);
-        console.log(i);
+        // console.log(i);
 
         if (runtime % 1 !== 0) {
           console.log('ERORR!1');
@@ -102,10 +99,11 @@ function start(i, total) {
             }
         ],
         runtime: runtime,
-        year: moviesDB[i].year,
+        year: moviesDB[i].yaer,
         plot: moviesDB[i].description,
         imdbID: 'tt' + moviesDB[i].id,
-        type: 'movie'
+        MPAA: moviesDB[i].MPAA,
+        type: moviesDB[i].type
     };
 
     db.models.Movie.create(fieldsToSet, function(err, m) {
@@ -113,8 +111,9 @@ function start(i, total) {
         console.log('Error', err);
         return false;
       }
+
+      start(i+1, total);
       return;
     });
-    start(i+1, total);
   });
 }
