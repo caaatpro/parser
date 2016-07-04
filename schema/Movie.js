@@ -24,7 +24,11 @@ exports = module.exports = function(db, mongoose) {
           { type: mongoose.Schema.Types.ObjectId, ref: 'Country' }
         ],
         people: [
-          { type: mongoose.Schema.Types.ObjectId, ref: 'People', role: '' }
+          {
+            type: mongoose.Schema.Types.ObjectId, ref: 'People',
+            role: '',
+            category: ''
+          }
         ],
         runtime: Number,
         year: Number,
