@@ -1,5 +1,6 @@
 var mongoose = require('mongoose'),
-    sqlite3 = require('sqlite3').verbose();
+    sqlite3 = require('sqlite3').verbose(),
+    ObjectID = require('mongodb').ObjectID;
 
 var sdb = new sqlite3.Database('movie.db');
 sdb.serialize();
@@ -11,6 +12,7 @@ config = {
 config.mongodb = {
   uri: 'mongodb://192.168.1.100:27017/movies'
 };
+
 db = mongoose.createConnection(config.mongodb.uri);
 db.on('error', console.error.bind(console, 'mongoose connection error: '));
 db.once('open', function () {
@@ -30,13 +32,13 @@ var total = 0,
     ti = 0,
     s = 0,
     l1 = 0,
-    l2 = 100000;
+    l2 =  100000;
 
-movies(l1, l2);
-// peoples(l1, l2);
+// movies(l1, l2);
+peoples(l1, l2);
 
 function movies(l1, l2) {
-  sdb.all("SELECT id, title, yaer, description, duration, type, MPAA FROM movies LIMIT " + l1 + ", " + l2, function(err, movies) {
+  sdb.all("SELECT id, title, yaer, description, duration, type, MPAA FROM movies ORDER BY id DESC LIMIT " + l1 + ", " + l2, function(err, movies) {
     if (err) {
       console.log('Error', err);
       return;
@@ -63,14 +65,15 @@ function startMovies(i, total) {
       return;
     }
 
+    console.log(i);
+    // console.log(movie);
 
     if (movie != null) {
       startMovies(i+1, total);
       return;
     }
 
-    console.log(i);
-    // console.log(movie);
+    console.log(movie);
 
     var duration = moviesDB[i].duration;
 
@@ -108,7 +111,6 @@ function startMovies(i, total) {
         return false;
       }
 
-      console.log(i);
       startMovies(i+1, total);
       return;
     });
@@ -127,15 +129,15 @@ function peoples(l1, l2) {
       var p = {};
 
       if (people[i].filed0 == '') {
-        p.name = people[i].filed1;
-        p.role = people[i].filed3;
+        p.name = people[i].filed1.trim();
+        p.role = people[i].filed3.trim();
       } else {
-        p.name = people[i].filed0;
-        p.role = people[i].filed2;
+        p.name = people[i].filed0.trim();
+        p.role = people[i].filed2.trim();
       }
       p.imdbID = people[i].filed5;
       p.movieId = 'tt' + people[i].movieId;
-      p.category = people[i].field_name;
+      p.category = people[i].field_name.trim();
 
       // console.log(p);
       peoplesDB.push(p);
@@ -183,21 +185,57 @@ function startPeoples(i, total) {
   });
 }
 
-function updatePeopleInMovie(i, total, people) {
+function updatePeopleInMovie(ii, total, people) {
   // console.log(people);
-  // console.log('|' + peoplesDB[i].movieId + '|');
 
-  db.models.Movie.findOne({ 'imdbID': peoplesDB[i].movieId }).exec(function(err, movie) {
+  db.models.Movie.findOne({ 'imdbID': peoplesDB[ii].movieId })/*.populate('peoples.people')*/.exec(function(err, movie) {
     if (err) {
       console.log('Error', err);
       return;
     }
 
     if (movie != null) {
-      console.log(movie);
+      // console.log(movie);
+
+      for (var i = 0; i < movie.peoples.length; i++) {
+        if (movie.peoples[i].people.equals(people._id) && movie.peoples[i].role === peoplesDB[ii].role && movie.peoples[i].category === peoplesDB[ii].category) {
+          // console.log(people);
+          startPeoples(ii+1, total);
+          return;
+        }
+      }
+
+      var p = {
+        people: people._id,
+        role: peoplesDB[ii].role,
+        category: peoplesDB[ii].category
+      };
+
+      movie.peoples.push(p);
+
+      // var d = movie.peoples;
+
+      db.models.Movie.update(
+         { '_id': movie._id },
+         {
+           peoples: movie.peoples
+         },
+         { upsert: true }
+      ).exec(function(err, movie) {
+        if (err) {
+          console.log(movie);
+          // console.log(d);
+          console.log(err);
+          return;
+        }
+
+        startPeoples(ii+1, total);
+      });
+
     } else {
       // console.log('Error find movie. ', i, people, peoplesDB[i].movieId);
-      startPeoples(i+1, total);
+      console.log(ii+1);
+      startPeoples(ii+1, total);
     }
   });
 }

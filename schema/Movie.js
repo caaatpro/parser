@@ -23,9 +23,12 @@ exports = module.exports = function(db, mongoose) {
         country: [
           { type: mongoose.Schema.Types.ObjectId, ref: 'Country' }
         ],
-        people: [
+        peoples: [
           {
-            type: mongoose.Schema.Types.ObjectId, ref: 'People',
+            people: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'People'
+            },
             role: '',
             category: ''
           }
