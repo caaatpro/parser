@@ -10,7 +10,7 @@ config = {
 
 };
 config.mongodb = {
-  uri: 'mongodb://192.168.1.100:27017/movies'
+  uri: 'mongodb://192.168.1.103:27017/movies'
 };
 
 db = mongoose.createConnection(config.mongodb.uri);

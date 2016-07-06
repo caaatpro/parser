@@ -1,5 +1,6 @@
 var request = require('request'),
 		http = require('http'),
+		https = require('https'),
     fs = require('fs'),
     path = require('path'),
     sqlite3 = require('sqlite3').verbose();
@@ -8,37 +9,31 @@ var db = new sqlite3.Database('movie.db');
 db.serialize();
 
 var moviesDB = [],
-		ti = 1,
-		t = 5; // threads
-		step = 0,
 		start = 0;
 
 db.all("SELECT id FROM moviesKP", function(err, row) {
   for (var i = row.length - 1; i >= 0; i--) {
   	var a = {};
   	a.id = row[i].id;
-  	a.img = 'http://st.kp.yandex.net/images/film_big/' +row[i].id+ '.jpg';
+  	a.img = 'https://st.kp.yandex.net/images/film_big/' +row[i].id+ '.jpg';
     moviesDB.push(a);
   }
 
-  step =  Math.floor(moviesDB.length/t);
 	console.log("Total:" + moviesDB.length);
-	console.log("Step:" + step);
 
 	parse(start, moviesDB.length);
 });
 
-function save(i, total) {
+function save(a) {
 	try {
-		http.get(moviesDB[i].img, function(response) {
-		  response.pipe(fs.createWriteStream('postersKP/'+moviesDB[i].id+'.jpg'));
-			parse(i+1, total);
+		https.get(a.img, function(response) {
+		  response.pipe(fs.createWriteStream('postersKP/'+a.id+'.jpg'));
 		});
 	} catch(e) {
 		console.log('Oh!');
 		console.log(e);
 		console.log(a);
-		save(i, total);
+		save(a);
 	}
 }
 
@@ -54,12 +49,14 @@ function parse(i, total) {
     return;
   }
 
-  console.log(moviesDB[i].img);
-  try {
+	console.log(moviesDB[i].img);
+
+	setTimeout(function () {
 	  request.get(moviesDB[i].img, function (error, response, body) {
+			// console.log(error, response, body);
 	  	if (error) {
 	  		console.log(error);
-	  		setInterval(function(){
+	  		setTimeout(function(){
 	        parse(i, total);
 	  		}, 50000);
 	  		return;
@@ -67,29 +64,26 @@ function parse(i, total) {
 	  	console.log(response.request.href);
 	    if (!error && response.statusCode == 200) {
 	    	console.log(response.request.href);
-	      if (response.request.href == "http://st.kinopoisk.ru/images/no-poster.gif") {
-	      	fs.writeFile('postersKP/'+moviesDB[i].img+'.jpg', null);
-	        if (i < total) {
-	          parse(i+1, total);
-	        }
+	      if (response.request.href == "https://st.kinopoisk.ru/images/no-poster.gif") {
+	      	fs.writeFile('postersKP/'+moviesDB[i].id+'.jpg', null);
+
+					parse(i+1, total);
 	        return;
 	      }
 
-	      save(i, total);
+	      save(moviesDB[i]);
+	      parse(i+1, total);
 	    } else {
 	      console.log("Error!" + i + " Status Code: "+ response.statusCode);
 
 	    	if (response.statusCode == 500) {
-	    		setInterval(function(){
+	    		setTimeout(function () {
 	          parse(i, total);
 	    		}, 50000);
 	    	}
 	    }
 
-    	return;
-  	});
-	} catch(e) {
-		console.log('Oh!');
-		console.log(e);
-	}
+	  	return;
+		});
+	}, 1);
 }
