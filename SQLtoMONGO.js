@@ -10,7 +10,7 @@ config = {
 
 };
 config.mongodb = {
-  uri: 'mongodb://192.168.1.103:27017/movies'
+  uri: 'mongodb://85.143.222.142:28345/movies'
 };
 
 db = mongoose.createConnection(config.mongodb.uri);
@@ -31,8 +31,8 @@ var total = 0,
     tt = 1,
     ti = 0,
     s = 0,
-    l1 = 0,
-    l2 =  100000;
+    l1 = 50000,
+    l2 =  50000;
 
 // movies(l1, l2);
 peoples(l1, l2);
