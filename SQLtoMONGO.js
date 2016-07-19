@@ -28,11 +28,11 @@ var moviesDB = [];
 var peoplesDB = [];
 
 var total = 0,
-    tt = 1,
+    tt = 4,
     ti = 0,
     s = 0,
-    l1 = 240000,
-    l2 =  50000;
+    l1 = 30000,
+    l2 =  10000;
 
 // movies(l1, l2);
 peoples(l1, l2);
@@ -118,12 +118,11 @@ function startMovies(i, total) {
 }
 
 function peoples(l1, l2) {
-  sdb.all("SELECT field_name, movieId, filed0, filed1, filed2, filed3, filed4, filed5 FROM peoples LIMIT " + l1 + ", " + l2, function(err, people) {
+  sdb.all("SELECT field_name, movieId, filed0, filed1, filed2, filed3, filed4, filed5 FROM peoples ORDER BY movieId ASC LIMIT " + l1 + ", " + l2, function(err, people) {
     if (err) {
       console.log('Error', err);
       return;
     }
-
 
     for (var i = 0; i < people.length; i++) {
       var p = {};
@@ -144,15 +143,20 @@ function peoples(l1, l2) {
     }
 
     total = peoplesDB.length;
+    step = Math.floor(total/tt)
 
-    startPeoples(s, total);
+    while (s < total) {
+      console.log(s, s+step);
+      startPeoples(s, total);
+      s = s+step;
+    }
   });
 }
 
 function startPeoples(i, total) {
   console.log(i);
   if (i > total || peoplesDB[i] === undefined) {
-    db.close();
+    // db.close();
     return;
   }
 
@@ -186,7 +190,6 @@ function startPeoples(i, total) {
 }
 
 function updatePeopleInMovie(ii, total, people) {
-  // console.log(people);
 
   db.models.Movie.findOne({ 'imdbID': peoplesDB[ii].movieId })/*.populate('peoples.people')*/.exec(function(err, movie) {
     if (err) {
@@ -198,12 +201,17 @@ function updatePeopleInMovie(ii, total, people) {
       // console.log(movie);
 
       for (var i = 0; i < movie.peoples.length; i++) {
+        // console.log(people._id);
+        // console.log(movie.peoples[i].people);
+        // console.log(movie.peoples[i].people.equals(people._id) && movie.peoples[i].role === peoplesDB[ii].role && movie.peoples[i].category === peoplesDB[ii].category);
+
         if (movie.peoples[i].people.equals(people._id) && movie.peoples[i].role === peoplesDB[ii].role && movie.peoples[i].category === peoplesDB[ii].category) {
           // console.log(people);
           startPeoples(ii+1, total);
           return;
         }
       }
+      console.log(1);
 
       var p = {
         people: people._id,
@@ -228,6 +236,8 @@ function updatePeopleInMovie(ii, total, people) {
           console.log(err);
           return;
         }
+
+        // console.log(people);
 
         startPeoples(ii+1, total);
       });
