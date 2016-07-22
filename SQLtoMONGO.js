@@ -28,10 +28,10 @@ var moviesDB = [];
 var peoplesDB = [];
 
 var total = 0,
-    tt = 4,
+    tt = 10,
     ti = 0,
     s = 0,
-    l1 = 30000,
+    l1 = 50000,
     l2 =  10000;
 
 // movies(l1, l2);
