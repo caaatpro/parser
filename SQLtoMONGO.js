@@ -28,14 +28,14 @@ var moviesDB = [];
 var peoplesDB = [];
 
 var total = 0,
-    tt = 10,
+    tt = 5,
     ti = 0,
     s = 0,
-    l1 = 50000,
-    l2 =  10000;
+    l1 = 10000,
+    l2 =  11000;
 
-// movies(l1, l2);
-peoples(l1, l2);
+movies(l1, l2);
+// peoples(l1, l2);
 
 function movies(l1, l2) {
   sdb.all("SELECT id, title, yaer, description, duration, type, MPAA FROM movies ORDER BY id DESC LIMIT " + l1 + ", " + l2, function(err, movies) {
@@ -48,14 +48,21 @@ function movies(l1, l2) {
 
     total = moviesDB.length;
     step =  Math.floor(total/tt);
+    s = 0;
 
-    startMovies(s, total);
+    while (ti <= tt) {
+      console.log(s, s + step);
+      startMovies(s, s + step);
+      s = s + step;
+      ti++;
+    }
   });
 }
 
 function startMovies(i, total) {
+  console.log(i, total);
   if (i > total || moviesDB[i] === undefined) {
-    db.close();
+    // db.close();
     return;
   }
 
@@ -65,8 +72,8 @@ function startMovies(i, total) {
       return;
     }
 
-    console.log(i);
-    // console.log(movie);
+    // console.log(i);
+    // console.log(movie['id']);
 
     if (movie != null) {
       startMovies(i+1, total);
