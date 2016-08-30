@@ -3,17 +3,70 @@ var request = require('request'),
   fs = require('fs'),
   Agent = require('socks5-http-client/lib/Agent'),
   TorControl = require('tor-control'),
+  sqlite3 = require('sqlite3'),
   async= require('async');
 
 var control = new TorControl();
 
-var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1940,1980&start=';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1971,1973&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1973,1975&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1975,1977&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1977,1979&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1979,1981&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1981,1983&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1983,1985&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1985,1987&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1987,1988&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1988,1989&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1989,1990&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1990,1991&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1991,1992&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1992,1993&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1993,1995&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1995,1996&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1996,1997&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1997,1998&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1998,1999&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=1999,2000&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2000,2001&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2001,2002&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2002,2003&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2003,2004&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2004,2005&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2005,2006&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2007,2007&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2008,2008&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2009,2009&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2010,2010&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2010,2010&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2011,2011&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2012,2012&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2013,2013&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2014,2014&view=advanced';
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2015,2015&view=advanced';
+
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=alpha,desc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=user_rating,desc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=user_rating,asc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=num_votes,desc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=num_votes,asc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=boxoffice_gross_us,desc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=boxoffice_gross_us,asc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=runtime,desc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=runtime,asc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=year,desc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=year,asc';
+// var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=release_date,desc';
+var FILM_URL = 'http://www.imdb.com/search/title?title_type=feature&year=2016,2016&view=advanced&sort=release_date,asc';
+
+// var FILM_URL = 'http://www.imdb.com/search/title?sort=moviemeter,asc&title_type=feature&year=2017,2024&view=advanced';
+
 
 var getById = function (id, options, callback) {
-  console.log(id);
+  // console.log(id);
 
   var requestOptions = {
-    url: FILM_URL + id,
+    url: FILM_URL + '&page=' + id,
     headers: {
       'Accept-Language': 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4',
       'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36'
@@ -33,48 +86,25 @@ var getById = function (id, options, callback) {
         callback(new Error('Error while "' + FILM_URL + id + '" processing. ' + err.message));
       } else {
         var $ = cheerio.load(body);
+        var title = $('title').text().trim();
 
-        if ($('title').text().trim() == 'IMDb - D\'oh') {
+        console.log(title);
+
+        if (title == 'IMDb - D\'oh') {
           callback(new Error('500'));
-        } else if ($('title').text().trim() == 'IMDb: Error') {
+        } else if (title == 'IMDb: Error') {
           callback(new Error('404'));
         } else{
 
-          var links = $('#main td.title > a');
-          var years = $('#main td.title > span.year_type');
+          var links = $('#main .lister-item-header > a');
+
+          console.log("Links on page: " + links.length);
 
           for (var i = links.length - 1; i >= 0; i--) {
-            var d = dir;
-            var year = $(years[i]).text();
 
-            var id = $(links[i]).attr('href').split('/title/tt')[1].split('/')[0];
-            console.log(id);
+            var id = parseInt($(links[i]).attr('href').split('/title/tt')[1].split('/')[0]);
 
-            if (year.length > 6) {
-
-              var temp = year.split('(')[1];
-              year = temp.substring(0,3)
-
-              var type = temp.substring(5,temp.length-1);
-
-              if (type == 'TV Series') {
-                d = d + 'series';
-              } else {
-                console.log(type);
-                callback(new Error('stop'));
-              }
-            } else {
-              year = year.split('(')[1].split(')')[0];
-            }
-
-            d = d + year;
-            fs.existsSync(d) || fs.mkdirSync(d);
-
-            if (fs.existsSync(d + '/' + id)) {
-              continue;
-            }
-
-            fs.writeFileSync(d + '/' + id, '1');
+            save(id);
           }
         }
       }
@@ -104,10 +134,26 @@ function getInfoAttr($, attr) {
   }
 }
 
-var dir = __dirname + '\\m0\\4\\';
+function save(id) {
+    db.get('SELECT id FROM movies WHERE id = ' + id + ' LIMIT 1', function(err, row) {
+        if (err) {
+            console.log(err);
+        }
+
+        // console.log(row);
+
+        if (row === undefined) {
+            var stmt = db.prepare("INSERT INTO movies (id) VALUES (?)");
+            stmt.run(id);
+        }
+    });
+}
+
 function parser(i, total, step) {
   getById(i, null, function(err, film){
-      console.log(i);
+
+    console.log("Page: " + i);
+
     if(err){
       if ('500' == err.message) {
         control.signalNewnym(function (err, status) { // Get a new circuit
@@ -139,21 +185,13 @@ function u (value) {
   return value;
 }
 
+var db = new sqlite3.Database('movie.db');
+db.serialize();
 
 var start = 1,
-  end =     100000,
-  step =       50,
+  end =     201,
+  step =       1,
   moviesDB = [];
-//
-// db.all("SELECT id FROM movie2", function(err, row) {
-//   for (var i = row.length - 1; i >= 0; i--) {
-//     moviesDB.push(row[i].id);
-//     // if (!fs.existsSync(dir + row[i].id)) {
-//     //    fs.writeFileSync(dir + row[i].id, '1');
-//     //  }
-//   }
-//   console.log(moviesDB.length);
-// });
 
 parser(start, end, step);
 // var i = 1;

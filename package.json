@@ -12,7 +12,7 @@
     "iconv": "~2.1.4",
     "iconv-lite": "^0.4.13",
     "mongoose": "^4.4.20",
-    "request": "~2.36.0",
+    "request": "^2.36.0",
     "socks5-http-client": "^1.0.2",
     "sqlite3": "^3.1.4",
     "tor-control": "0.0.1"
