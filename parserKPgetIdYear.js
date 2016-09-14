@@ -12,7 +12,7 @@ var control = new TorControl();
 var db = new sqlite3.Database('movie.db');
 db.serialize();
 
-var yaer = 2050; // 2000
+var yaer = 1911; // 2000
 var FILM_URL = '';
 startparse();
 
@@ -144,7 +144,6 @@ function getInfoAttr($, attr) {
   }
 }
 
-var dir = __dirname + '\\m0\\4\\';
 function parser(i, total, step) {
   getById(i, null, function(err, film){
     if(err){
@@ -159,21 +158,3 @@ function parser(i, total, step) {
 function u (value) {
   return value;
 }
-
-
-//
-// db.all("SELECT id FROM movie2", function(err, row) {
-//   for (var i = row.length - 1; i >= 0; i--) {
-//     moviesDB.push(row[i].id);
-//     // if (!fs.existsSync(dir + row[i].id)) {
-//     //    fs.writeFileSync(dir + row[i].id, '1');
-//     //  }
-//   }
-//   console.log(moviesDB.length);
-// });
-
-// var i = 1;
-// while(start <= end) {
-//   setTimeout(prser(start, start+step), i);
-//   start += step;
-// }
